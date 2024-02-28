@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLOCK_SVG</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #clockContainer {
+            position: relative;
+        }
+
+        #clockSvg {
+            border: 2px solid black;
+            border-radius: 50%;
+            background-color: #fcca66;
+        }
+
+        .number {
+            font-size: calc(var(--diameter) * 0.05);
+            text-anchor: middle;
+            alignment-baseline: central;
+        }
+
+        .background-circle {
+            fill: #48b382;
+        }
+
+        .hand {
+            stroke: black;
+            stroke-width: calc(var(--diameter) * 0.01);
+            stroke-linecap: round;
+        }
+    </style>
+</head>
+<body>
+    <div id="clockContainer">
+        <input type="number" id="diameterInput" placeholder="Диаметр (200-800)">
+        <button onclick="buildClock()">Построить часы</button>
+    </div>
+    <script>
+        const MIN_DIAMETER = 200;
+        const MAX_DIAMETER = 800;
+        const DEG_TO_RAD = Math.PI / 180;
+
+        let hourHand, minuteHand, secondHand;
+
+        function buildClock() {
+            const diameterInput = document.getElementById('diameterInput');
+            const diameter = parseInt(diameterInput.value);
+
+            if (isNaN(diameter) || diameter < MIN_DIAMETER || diameter > MAX_DIAMETER) {
+                alert('Введите корректное число от 200 до 800.');
+                return;
+            }
+
+            document.documentElement.style.setProperty('--diameter', diameter + 'px');
+
+            const clockContainer = document.getElementById('clockContainer');
+            clockContainer.innerHTML = '';
+
+            const clockSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            clockSvg.setAttribute('id', 'clockSvg');
+            clockSvg.setAttribute('width', diameter);
+            clockSvg.setAttribute('height', diameter);
+            clockContainer.appendChild(clockSvg);
+
+            const centerX = diameter / 2;
+            const centerY = centerX;
+            const radius = diameter * 0.4;
+
+            for (let i = 1; i <= 12; i++) {
+                const angle = (i - 3) * 30;
+                const angleRad = angle * DEG_TO_RAD;
+                const x = centerX + Math.cos(angleRad) * radius;
+                const y = centerY + Math.sin(angleRad) * radius;
+
+                const backgroundCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                backgroundCircle.setAttribute('cx', x);
+                backgroundCircle.setAttribute('cy', y);
+                backgroundCircle.setAttribute('r', diameter * 0.05);
+                backgroundCircle.setAttribute('class', 'background-circle');
+                clockSvg.appendChild(backgroundCircle);
+
+                const number = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                number.setAttribute('x', x);
+                number.setAttribute('y', y);
+                number.setAttribute('class', 'number');
+                number.textContent = i;
+                clockSvg.appendChild(number);
+            }
+
+            hourHand = createHand('hourHand', centerX, centerY, diameter * 0.04, diameter * 0.25);
+            minuteHand = createHand('minuteHand', centerX, centerY, diameter * 0.02, diameter * 0.3);
+            secondHand = createHand('secondHand', centerX, centerY, diameter * 0.01, diameter * 0.35);
+
+            clockSvg.appendChild(hourHand);
+            clockSvg.appendChild(minuteHand);
+            clockSvg.appendChild(secondHand);
+
+            startClock();
+        }
+
+        function createHand(id, centerX, centerY, width, height) {
+            const hand = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            hand.setAttribute('id', id);
+            hand.setAttribute('class', 'hand');
+            hand.setAttribute('x1', centerX);
+            hand.setAttribute('y1', centerY);
+            hand.setAttribute('x2', centerX);
+            hand.setAttribute('y2', centerY - height);
+            hand.setAttribute('stroke-width', width);
+            return hand;
+        }
+
+        function startClock() {
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours() % 12;
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            const hourAngle = (hours * 30) + (0.5 * minutes);
+            const minuteAngle = (minutes * 6) + (0.1 * seconds);
+            const secondAngle = seconds * 6;
+
+            hourHand.setAttribute('transform', `rotate(${hourAngle}, ${hourHand.getAttribute('x1')}, ${hourHand.getAttribute('y1')})`);
+            minuteHand.setAttribute('transform', `rotate(${minuteAngle}, ${minuteHand.getAttribute('x1')}, ${minuteHand.getAttribute('y1')})`);
+            secondHand.setAttribute('transform', `rotate(${secondAngle}, ${secondHand.getAttribute('x1')}, ${secondHand.getAttribute('y1')})`);
+
+            console.log(`${hours}:${minutes}:${seconds}`);
+        }
+    </script>
+</body>
+</html>
