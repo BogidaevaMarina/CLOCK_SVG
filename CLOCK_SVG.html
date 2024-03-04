@@ -35,8 +35,16 @@
 
         .hand {
             stroke: black;
-            stroke-width: calc(var(--diameter) * 0.01);
             stroke-linecap: round;
+            opacity: 0.8; 
+        }
+
+        .hour-hand {
+            stroke-width: calc(var(--diameter) * 0.03); 
+        }
+
+        .second-hand {
+            stroke-width: calc(var(--diameter) * 0.01); 
         }
     </style>
 </head>
@@ -97,21 +105,30 @@
                 clockSvg.appendChild(number);
             }
 
-            hourHand = createHand('hourHand', centerX, centerY, diameter * 0.04, diameter * 0.25);
-            minuteHand = createHand('minuteHand', centerX, centerY, diameter * 0.02, diameter * 0.3);
-            secondHand = createHand('secondHand', centerX, centerY, diameter * 0.01, diameter * 0.35);
+            hourHand = createHand('hourHand', centerX, centerY, diameter * 0.03, diameter * 0.25, 'hour-hand');
+            minuteHand = createHand('minuteHand', centerX, centerY, diameter * 0.02, diameter * 0.3, '');
+            secondHand = createHand('secondHand', centerX, centerY, diameter * 0.01, diameter * 0.35, 'second-hand');
 
             clockSvg.appendChild(hourHand);
             clockSvg.appendChild(minuteHand);
             clockSvg.appendChild(secondHand);
 
+            const timeText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            timeText.setAttribute('x', centerX);
+            timeText.setAttribute('y', centerY + radius * -0.5);
+            timeText.setAttribute('text-anchor', 'middle');
+            timeText.setAttribute('alignment-baseline', 'central');
+            timeText.setAttribute('font-size', diameter * 0.08);
+            timeText.setAttribute('id', 'timeText');
+            clockSvg.appendChild(timeText);
+
             startClock();
         }
 
-        function createHand(id, centerX, centerY, width, height) {
+        function createHand(id, centerX, centerY, width, height, additionalClass) {
             const hand = document.createElementNS("http://www.w3.org/2000/svg", "line");
             hand.setAttribute('id', id);
-            hand.setAttribute('class', 'hand');
+            hand.setAttribute('class', 'hand ' + additionalClass);
             hand.setAttribute('x1', centerX);
             hand.setAttribute('y1', centerY);
             hand.setAttribute('x2', centerX);
@@ -139,7 +156,8 @@
             minuteHand.setAttribute('transform', `rotate(${minuteAngle}, ${minuteHand.getAttribute('x1')}, ${minuteHand.getAttribute('y1')})`);
             secondHand.setAttribute('transform', `rotate(${secondAngle}, ${secondHand.getAttribute('x1')}, ${secondHand.getAttribute('y1')})`);
 
-            console.log(`${hours}:${minutes}:${seconds}`);
+            const timeText = document.getElementById('timeText');
+            timeText.textContent = `${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
         }
     </script>
 </body>
